@@ -2,9 +2,8 @@ package server
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
-	"os"
-	"strconv"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -13,22 +12,25 @@ import (
 )
 
 type Server struct {
-	port int
+	address string
+	port    int
 
 	db database.Service
 }
 
 func NewServer() *http.Server {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	address := viper.GetString("address")
+	port := viper.GetInt("port")
 	NewServer := &Server{
-		port: port,
+		address: address,
+		port:    port,
 
 		db: database.New(),
 	}
 
 	// Declare Server config
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
+		Addr:         fmt.Sprintf("%v:%d", NewServer.address, NewServer.port),
 		Handler:      NewServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,

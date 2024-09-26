@@ -14,15 +14,10 @@ import (
 // dijkstraCmd represents the dijkstra command
 var dijkstraCmd = &cobra.Command{
 	Use:   "dijkstra",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Runs dijkstra on a supplied graph file to provide shortest unweighted path from source to target",
+	Args:  cobra.MatchAll(cobra.ExactArgs(3), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
-		graphPath := os.Args[1]
+		graphPath := args[0]
 
 		f, err := os.OpenFile(graphPath, os.O_RDONLY, 0644)
 		if err != nil {
@@ -45,28 +40,16 @@ to quickly create a Cobra application.`,
 			panic(err)
 		}
 
-		parser := graph.NewParser()
-
-		g, err := parser.Parse(string(fileBytes))
+		g, err := graph.NewParser().Parse(string(fileBytes))
 		if err != nil {
 			panic(err)
 		}
-		dijkstra(g, graph.NodeId(os.Args[2]), graph.NodeId(os.Args[3]))
+		dijkstra(g, graph.NodeId(args[1]), graph.NodeId(args[2]))
 	},
 }
 
 func init() {
 	runCmd.AddCommand(dijkstraCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// dijkstraCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// dijkstraCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func dijkstra(g *graph.Graph, source, target graph.NodeId) {
