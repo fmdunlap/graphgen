@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"graphgen/internal/config"
 	"graphgen/internal/server"
 )
 
@@ -26,7 +26,9 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		s := server.NewServer()
+		s := server.NewServer(EnvConfig)
+
+		printServerInitMessage(EnvConfig)
 
 		err := s.ListenAndServe()
 		if err != nil {
@@ -39,11 +41,20 @@ func init() {
 	rootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().StringVarP(&serverAddress, "address", "a", "0.0.0.0", "Bind address for the server")
 	serveCmd.Flags().IntVarP(&serverPort, "port", "p", 8080, "Bind port for the server")
-
-	viper.BindPFlag("address", serveCmd.Flags().Lookup("address"))
-	viper.BindPFlag("port", serveCmd.Flags().Lookup("port"))
 }
 
-func initConfig() {
-	viper.AutomaticEnv()
+func printServerInitMessage(c *config.Config) {
+	initFmtString := `🚀 Initializing Server 🚀
+- Address: %v:%v
+- Environment: "%v"
+- Database Host: %v:%v
+`
+
+	fmt.Printf(initFmtString,
+		c.Server.Address,
+		c.Server.Port,
+		c.Server.Environment,
+		c.Database.Host,
+		c.Database.Port,
+	)
 }

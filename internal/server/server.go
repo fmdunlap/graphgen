@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
+	"graphgen/internal/config"
 	"net/http"
 	"time"
 
@@ -14,18 +14,15 @@ import (
 type Server struct {
 	address string
 	port    int
-
-	db database.Service
+	db      database.Service
 }
 
-func NewServer() *http.Server {
-	address := viper.GetString("address")
-	port := viper.GetInt("port")
+func NewServer(config *config.Config) *http.Server {
 	NewServer := &Server{
-		address: address,
-		port:    port,
+		address: config.Server.Address,
+		port:    config.Server.Port,
 
-		db: database.New(),
+		db: database.New(&config.Database),
 	}
 
 	// Declare Server config

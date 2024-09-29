@@ -2,9 +2,9 @@ version: "2"
 sql:
   - engine: "postgresql"
     queries: "query.sql"
-    schema: "internal/db/migrations"
+    schema: "internal/store/migrations"
     gen:
       go:
-        package: "db"
-        out: "internal/db"
+        package: "store"
+        out: "internal/store"
         sql_package: "pgx/v5"

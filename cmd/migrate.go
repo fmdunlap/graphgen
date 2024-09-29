@@ -62,7 +62,7 @@ var migrateDownCmd = &cobra.Command{
 }
 
 func getMigrate(migrationDirPath string) (*migrate.Migrate, error) {
-	db := database.New()
+	db := database.New(&EnvConfig.Database)
 	driver, err := postgres.WithInstance(db.GetInstance(), &postgres.Config{})
 	if err != nil {
 		panic(err)
