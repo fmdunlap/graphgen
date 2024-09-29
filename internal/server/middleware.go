@@ -23,14 +23,14 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString := authorizationHeader[len("Bearer "):]
-		token, err := s.auth.VerifyToken(tokenString)
+		_, claims, err := s.auth.VerifyToken(tokenString)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			ErrorResp(w, fmt.Sprintf("error verifying token: %v", err))
 			return
 		}
 
-		r = SetAuthTokenContext(r, token)
+		r = SetAuthTokenContext(r, claims)
 
 		next.ServeHTTP(w, r)
 	})

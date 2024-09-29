@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"graphgen/internal/config"
-	"time"
 )
 
 const (
@@ -14,7 +13,7 @@ const (
 
 type Service interface {
 	CreateToken(username string) (string, error)
-	VerifyToken(tokenString string) (*jwt.Token, error)
+	VerifyToken(tokenString string) (*jwt.Token, *JWTClaims, error)
 }
 
 type service struct {
@@ -35,16 +34,7 @@ func New(c *config.AuthConfig) Service {
 }
 
 func (a *service) CreateToken(username string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512,
-		jwt.MapClaims{
-			"sub":  username,
-			"iss":  "graphgen",
-			"aud":  getRole(username),
-			"exp":  time.Now().Add(expirationHours * time.Hour).Unix(),
-			"iat":  time.Now().Unix(),
-			"user": username,
-		},
-	)
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, newJWTClaims(username))
 
 	tokenString, err := token.SignedString(a.privateKey)
 	if err != nil {
@@ -54,29 +44,23 @@ func (a *service) CreateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-func (a *service) VerifyToken(tokenString string) (*jwt.Token, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func (a *service) VerifyToken(tokenString string) (*jwt.Token, *JWTClaims, error) {
+	claims := &JWTClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return a.publicKey, nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if !token.Valid {
-		return nil, &InvalidTokenError{Token: token}
+		return nil, nil, &InvalidTokenError{Token: token}
 	}
 
-	return token, nil
-}
-
-func getRole(username string) string {
-	if username == "fdunlap" {
-		return admin
-	}
-	return user
+	return token, claims, nil
 }
 
 func parseKeysFromPEM(privateKeyBytes, publicKeyBytes []byte) (*rsa.PrivateKey, *rsa.PublicKey, error) {

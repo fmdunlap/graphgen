@@ -45,20 +45,13 @@ func (s *Server) verifyTokenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := GetAuthToken(r)
+	user, err := GetAuthenticatedUser(r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		ErrorResp(w, "no auth token found for request")
 		return
 	}
 
-	audience, err := token.Claims.GetAudience()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ErrorResp(w, fmt.Sprintf("error getting auth token audience: %v", err))
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Hello %v!", audience)))
+	w.Write([]byte(fmt.Sprintf("Hello %v!", user)))
 }

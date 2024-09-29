@@ -1,12 +1,25 @@
 package auth
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"github.com/golang-jwt/jwt/v5"
+	"time"
+)
 
-type ExampleClaimData struct {
-	s string `json:"s"`
+type Scopes struct{}
+
+type JWTClaims struct {
+	Scopes Scopes
+	jwt.RegisteredClaims
 }
 
-type JWTClaim struct {
-	Data ExampleClaimData
-	jwt.RegisteredClaims
+func newJWTClaims(username string) JWTClaims {
+	return JWTClaims{
+		Scopes: Scopes{},
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "graphgen",
+			Subject:   username,
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationHours * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
 }

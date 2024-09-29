@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
+	"graphgen/internal/auth"
 	"log"
 	"net/http"
 	"strings"
@@ -50,17 +50,21 @@ func JsonResp(w http.ResponseWriter, data any) {
 	_, _ = w.Write(jsonResp)
 }
 
-func SetAuthTokenContext(r *http.Request, token *jwt.Token) *http.Request {
+func SetAuthTokenContext(r *http.Request, claims *auth.JWTClaims) *http.Request {
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, "token", token)
+	ctx = context.WithValue(ctx, "claims", claims)
 	r = r.WithContext(ctx)
 	return r
 }
 
-func GetAuthToken(r *http.Request) (*jwt.Token, error) {
-	token, ok := r.Context().Value("token").(*jwt.Token)
-	if token == nil || !ok {
-		return nil, NoAuthTokenError
+func GetAuthenticatedUser(r *http.Request) (string, error) {
+	claims, ok := r.Context().Value("claims").(*auth.JWTClaims)
+	if claims == nil || !ok {
+		return "", NoAuthTokenError
 	}
-	return token, nil
+	subject, err := claims.GetSubject()
+	if err != nil {
+		return "", NoAuthTokenError
+	}
+	return subject, nil
 }
