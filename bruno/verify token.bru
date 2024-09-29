@@ -1,0 +1,25 @@
+meta {
+  name: verify token
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/auth/verify
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBRE1JTiIsImV4cCI6MTcyNzczMDAzNiwiaWF0IjoxNzI3NjQzNjM2LCJpc3MiOiJncmFwaGdlbiIsInN1YiI6ImZkdW5sYXAifQ.cwXThjrKj9Q2QKvmDJdRI6UsEJ68nOaUzJa8aBgnX_3mUtsmdHRBQLquKvMqplbe2HjovWviJLUSCj6Xl5QEsjSS4dKgG7mgWgAsxc5ZwUXt-0Cw9sl-lqUEx-O9xZR9MiwSPpdCETZULRCs1Jo8yuXGdc8ezKJ-YOTmK_GXRua2tNcwM7myo5ibGNCurGkrB9lQh8zzomO_TxZWNaWo1P5BWZlSN0BSVDkPWSHr0uHPYYb66M7hIIaV40NhgSXhdWx8jLbFW4j_9Yc8A_cqk2razGI5feDv6oE4zie5_RU1iFQAFahaSVVKpnlQ3yFUE5kvg9rva_nhP2tigf464B03L94pKfyQAPu-4WuJgne298MVg1WHbvHPq0MvdWQ78zN8GvQojsjNcOiaSQuAYe7nQ5KdAyl01mcKCy8_gDj23ks0R18gGYR0jBhWB-uuVyu2R7XDiTzoUXSzF39MquLCs_zgBS5hwn_KG_zvmZJdY7Ws7X7BsmzGNP_7tsuLj_deLAHmJDggI60NW7AmwDmxgUAWUBMJ2wj9ztQIUZbwcgi8w5XcMdO-Ebn4Xm5Ud-d5jER0AUsXY6lEmFTEJbQz6s67DBjMolE4ImOdhRqxxAWWmUAcj8z86tApkVMY_QtsdVFGb6G6F78pb9tqB_vWcpun1TeSiVrVqdUaZ0c
+}
+
+body:json {
+  {
+    "username": "fdunlap"
+  }
+}
+
+body:multipart-form {
+  username: fdunlap
+}

@@ -8,6 +8,12 @@ import (
 	"github.com/spf13/cobra"
 	"graphgen/internal/config"
 	"graphgen/internal/server"
+	"log"
+	"time"
+)
+
+const (
+	gracefulShutdownTimeout = time.Second * 15
 )
 
 var (
@@ -29,11 +35,8 @@ to quickly create a Cobra application.`,
 		s := server.NewServer(EnvConfig)
 
 		printServerInitMessage(EnvConfig)
-
-		err := s.ListenAndServe()
-		if err != nil {
-			panic(fmt.Sprintf("cannot start server: %s", err))
-		}
+		s.StartAndBlock()
+		printServerShutdownMessage()
 	},
 }
 
@@ -44,17 +47,12 @@ func init() {
 }
 
 func printServerInitMessage(c *config.Config) {
-	initFmtString := `🚀 Initializing Server 🚀
-- Address: %v:%v
-- Environment: "%v"
-- Database Host: %v:%v
-`
+	log.Println("🚀 Initializing Server 🚀")
+	log.Printf("\t- Address: %v:%v\n", c.Server.Address, c.Server.Port)
+	log.Printf("\t- Environment: %v\n", c.Server.Environment)
+	log.Printf("\t- Address: %v:%v\n", c.Database.Host, c.Database.Port)
+}
 
-	fmt.Printf(initFmtString,
-		c.Server.Address,
-		c.Server.Port,
-		c.Server.Environment,
-		c.Database.Host,
-		c.Database.Port,
-	)
+func printServerShutdownMessage() {
+	fmt.Println("Server Shutdown")
 }

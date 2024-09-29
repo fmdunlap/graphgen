@@ -1,9 +1,14 @@
 package server
 
 import (
+	"context"
 	"fmt"
+	"graphgen/internal/auth"
 	"graphgen/internal/config"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -12,27 +17,48 @@ import (
 )
 
 type Server struct {
-	address string
-	port    int
-	db      database.Service
+	config *config.Config
+
+	httpServer *http.Server
+
+	auth auth.Service
+	db   database.Service
 }
 
-func NewServer(config *config.Config) *http.Server {
-	NewServer := &Server{
-		address: config.Server.Address,
-		port:    config.Server.Port,
+func NewServer(config *config.Config) *Server {
+	newServer := &Server{
+		config: config,
 
-		db: database.New(&config.Database),
+		auth: auth.New(&config.Auth),
+		db:   database.New(&config.Database),
 	}
 
-	// Declare Server config
-	server := &http.Server{
-		Addr:         fmt.Sprintf("%v:%d", NewServer.address, NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
+	httpServer := &http.Server{
+		Addr:         fmt.Sprintf("%v:%d", config.Server.Address, config.Server.Port),
+		Handler:      newServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 
-	return server
+	newServer.httpServer = httpServer
+
+	return newServer
+}
+
+func (s *Server) StartAndBlock() {
+	go func() {
+		err := s.httpServer.ListenAndServe()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), s.config.Server.GetShutdownTimeoutDuration())
+	defer cancel()
+	_ = s.httpServer.Shutdown(ctx)
 }

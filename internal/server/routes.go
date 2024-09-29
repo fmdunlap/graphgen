@@ -10,6 +10,9 @@ import (
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := mux.NewRouter()
+	r.Use(s.loggingMiddleware)
+
+	s.registerAuthRoutes(r)
 
 	r.HandleFunc("/", s.HelloWorldHandler)
 
