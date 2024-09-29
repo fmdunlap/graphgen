@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 set -e
 
-go build -o ./dist ./... && ./dist/graphgen $@;
+go build -o ./dist ./... && doppler run -c dev -- ./dist/graphgen $@;
