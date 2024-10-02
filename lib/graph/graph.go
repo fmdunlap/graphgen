@@ -134,7 +134,15 @@ func (g *Graph) String() string {
 			targetLabel = target.Attrs.Label
 		}
 
-		output += fmt.Sprintf("%v -> %v\n", sourceLabel, targetLabel)
+		output += fmt.Sprintf("%v -> %v", sourceLabel, targetLabel)
+		if edge.Attrs.Label != "" {
+			output += fmt.Sprintf(" (%v)", edge.Attrs.Label)
+		}
+		if edge.Attrs.Weight != 0.0 {
+			output += fmt.Sprintf("[%v]", edge.Attrs.Weight)
+		}
+
+		output += "\n"
 	}
 	return output
 }

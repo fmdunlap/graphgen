@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"graphgen/internal/config"
 	"log"
 	"testing"
 	"time"
@@ -11,53 +12,54 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func mustStartPostgresContainer() (func(context.Context) error, error) {
-	var (
-		dbName = "database"
-		dbPwd  = "password"
-		dbUser = "user"
-	)
+var (
+	testDbConfig = &config.DatabaseConfig{}
+)
+
+func mustStartPostgresContainer() (func(context.Context) error, *config.DatabaseConfig, error) {
+	dbConfig := config.DatabaseConfig{
+		Database: "database",
+		Password: "password",
+		Schema:   "public",
+		Username: "user",
+	}
 
 	dbContainer, err := postgres.Run(
 		context.Background(),
 		"postgres:latest",
-		postgres.WithDatabase(dbName),
-		postgres.WithUsername(dbUser),
-		postgres.WithPassword(dbPwd),
+		postgres.WithDatabase(dbConfig.Database),
+		postgres.WithUsername(dbConfig.Username),
+		postgres.WithPassword(dbConfig.Password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
 				WithStartupTimeout(5*time.Second)),
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	database = dbName
-	password = dbPwd
-	username = dbUser
-
-	dbHost, err := dbContainer.Host(context.Background())
+	dbConfig.Host, err = dbContainer.Host(context.Background())
 	if err != nil {
-		return dbContainer.Terminate, err
+		return dbContainer.Terminate, nil, err
 	}
 
 	dbPort, err := dbContainer.MappedPort(context.Background(), "5432/tcp")
 	if err != nil {
-		return dbContainer.Terminate, err
+		return dbContainer.Terminate, nil, err
 	}
+	dbConfig.Port = dbPort.Int()
 
-	host = dbHost
-	port = dbPort.Port()
-
-	return dbContainer.Terminate, err
+	return dbContainer.Terminate, &dbConfig, err
 }
 
 func TestMain(m *testing.M) {
-	teardown, err := mustStartPostgresContainer()
+	teardown, dbConfig, err := mustStartPostgresContainer()
 	if err != nil {
 		log.Fatalf("could not start postgres container: %v", err)
 	}
+
+	testDbConfig = dbConfig
 
 	m.Run()
 
@@ -67,14 +69,14 @@ func TestMain(m *testing.M) {
 }
 
 func TestNew(t *testing.T) {
-	srv := New()
+	srv := New(testDbConfig)
 	if srv == nil {
 		t.Fatal("New() returned nil")
 	}
 }
 
 func TestHealth(t *testing.T) {
-	srv := New()
+	srv := New(testDbConfig)
 
 	stats := srv.Health()
 
@@ -92,7 +94,7 @@ func TestHealth(t *testing.T) {
 }
 
 func TestClose(t *testing.T) {
-	srv := New()
+	srv := New(testDbConfig)
 
 	if srv.Close() != nil {
 		t.Fatalf("expected Close() to return nil")
