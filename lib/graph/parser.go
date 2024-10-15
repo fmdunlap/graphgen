@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	NodeDefinitionRegex = regexp.MustCompile(`^(\w)(?: \[([\w\s:,]+)])?$`)
-	EdgeDefinitionRegex = regexp.MustCompile(`^(\w)\s*(<-|->|<>)\s*(\w)(?: \[([\w\s:,.]+)])?$`)
+	NodeDefinitionRegex = regexp.MustCompile(`^(\w)+(?: \[([\w\s:,]+)])?$`)
+	EdgeDefinitionRegex = regexp.MustCompile(`^([\w]+)\s*(<-|->|<>)\s*([\w]+)(?: \[([-\w\s:|,.]+)])?$`)
 )
 
 type Parser struct {
@@ -120,6 +120,7 @@ func (p *Parser) parseNodeAttributes(attributeString string) (NodeAttributes, er
 
 func (p *Parser) parseEdgeDefinition(line string) error {
 	matches := EdgeDefinitionRegex.FindStringSubmatch(line)
+
 	leftNodeId := matches[1]
 	edgeType := matches[2]
 	rightNodeId := matches[3]

@@ -243,7 +243,7 @@ func (gen *Generator) generateEdge(source Node, target Node) Edge {
 
 func (gen *Generator) generateEdgeLabel(source Node, target Node) string {
 	if gen.edgeLabelSet == nil || len(gen.usableEdgeLabels) <= 0 {
-		return fmt.Sprintf("%s:%s", source.ID, target.ID)
+		return fmt.Sprintf("%s|%s", source.ID, target.ID)
 	}
 
 	label := gen.usableEdgeLabels[0]
